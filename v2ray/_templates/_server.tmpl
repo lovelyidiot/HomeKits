@@ -1,0 +1,58 @@
+{
+  "log": {
+    "access": "/var/log/v2ray_access.log",
+    "error": "/var/log/v2ray_error.log",
+    "loglevel": "info"
+  },
+  "inbound": {
+    "port": ${SERVER_VMESS_PORT},
+    "protocol": "vmess",
+    "settings": {
+      "clients": [
+        {
+          "id": "${COMMON_VMESS_ID}",
+          "level": 7,
+          "security": "aes-128-gcm",
+          "alterId": 64
+        }
+      ]
+    },
+    "streamSettings": {
+      "network": "mkcp",
+      "security": "none",
+      "tlsSettings": {
+        "allowInsecure": false
+      },
+      "kcpSettings": {
+        "mtu": 1350,
+        "tti": 50,
+        "uplinkCapacity": 20,
+        "downlinkCapacity": 20,
+        "congestion": true,
+        "readBufferSize": 64,
+        "writeBufferSize": 64,
+        "header": {
+          "type": "none"
+        }
+      }
+    }
+  },
+  "outbound": {
+    "protocol": "freedom",
+    "settings": {}
+  },
+  "routing": {
+    "strategy": "rules",
+    "settings": {
+      "rules": [
+        {
+          "type": "field",
+          "ip": [
+            "geoip:private"
+          ],
+          "outboundTag": "blocked"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,79 @@
+{
+    "log": {
+      "access": "/var/log/v2ray_access.log",
+      "error": "/var/log/v2ray_error.log",
+      "loglevel": "info"
+    },
+    "inbound": {
+      "port": ${CLIENT_SOCKS_PORT},
+      "streamSettings": {},
+      "protocol": "socks",
+      "settings": {
+        "auth": "noauth"
+      }
+    },
+    "outbound": {
+      "mux": {
+        "enabled": false,
+        "concurrency": 8
+      },
+      "protocol": "vmess",
+      "settings": {
+        "vnext": [
+          {
+            "address": "${SERVER_HOSTNAME}",
+            "port": ${SERVER_VMESS_PORT},
+            "users": [
+              {
+                "id": "${COMMON_VMESS_ID}",
+                "level": 7,
+                "security": "aes-128-gcm",
+                "alterId": 64
+              }
+            ]
+          }
+        ]
+      },
+      "streamSettings": {
+        "network": "mkcp",
+        "security": "none",
+        "tlsSettings": {
+          "allowInsecure": false
+        },
+        "kcpSettings": {
+          "mtu": 1350,
+          "tti": 50,
+          "uplinkCapacity": 20,
+          "downlinkCapacity": 20,
+          "congestion": true,
+          "readBufferSize": 64,
+          "writeBufferSize": 64,
+          "header": {
+            "type": "none"
+          }
+        }
+      }
+    },
+    "routing": {
+      "strategy": "rules",
+      "settings": {
+        "rules": [
+          {
+            "type": "field",
+            "ip": [
+              "geoip:private"
+            ],
+            "outboundTag": "blocked"
+          }
+        ]
+      }
+    },
+    "dns": {
+      "servers": [
+        "1.1.1.1",
+        "8.8.8.8",
+        "114.114.114.114",
+        "localhost"
+      ]
+    }
+  }

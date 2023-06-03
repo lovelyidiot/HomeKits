@@ -1,0 +1,42 @@
+function uuid() {
+  v2ctl uuid 2> /dev/null || (
+    local uuid=`cat /proc/uptime | md5sum`
+    echo ${uuid:0:8}-${uuid:8:4}-${uuid:12:4}-${uuid:16:4}-${uuid:20:12}
+  )
+}
+
+function render() {
+  local FILE=$1
+  local TEXT=$(TEXT=`cat ${FILE}` && Q='"' && TEXT=${TEXT//$'\"'/$'\\\"'} && eval "TEXT=\"${TEXT}\"" && echo "${TEXT}")
+  [ ! -z "${TEXT}" ] && echo "${TEXT}"
+}
+
+## user definition
+set -e
+export COMMON_VMESS_ID=${COMMON_VMESS_ID:-`uuid`}
+export SERVER_VMESS_PORT=${SERVER_VMESS_PORT:-7777}
+export SERVER_HOSTNAME=${SERVER_HOSTNAME:-v2ray-proxy.dynamic-dns.net}
+export CLIENT_SOCKS_PORT=${CLIENT_SOCKS_PORT:-7077}
+
+echo COMMON_VMESS_ID: ${COMMON_VMESS_ID}
+echo SERVER_HOSTNAME: ${SERVER_HOSTNAME}
+echo CLIENT_SOCKS_PORT: ${CLIENT_SOCKS_PORT}
+echo SERVER_VMESS_PORT: ${SERVER_VMESS_PORT}
+
+if [[ "${V2RAY_TYPE}" == "server" ]]; then
+  render ./_templates/_server.tmpl > ./server.json
+  exec v2ray -config ./server.json
+elif [[ "${V2RAY_TYPE}" == "client" ]]; then
+  render ./_templates/_client.tmpl > ./client.json
+  exec v2ray -config ./client.json
+else
+  JSON_OUTPUT_DIR=${JSON_OUTPUT_DIR:-$PWD/config}
+  pushd `dirname $0` 2> /dev/null || cd `dirname $0`
+
+  mkdir -p ${JSON_OUTPUT_DIR}
+  render ./_templates/_server.tmpl > ${JSON_OUTPUT_DIR}/server.json
+  render ./_templates/_client.tmpl > ${JSON_OUTPUT_DIR}/client.json
+
+  popd 2> /dev/null || cd -
+fi
+
